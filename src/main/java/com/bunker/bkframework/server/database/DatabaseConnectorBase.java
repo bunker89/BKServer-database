@@ -9,6 +9,7 @@ public interface DatabaseConnectorBase {
 	 * construct is must be default.
 	 */
 	public void destroy();	
+	public void setQueryReportCount(int report);
 	public Connection isWriteConnected();
 	public Connection isReadConnected();
 	public WatchDog startWatchDog(DatabaseHelperFactory factory);

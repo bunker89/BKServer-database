@@ -12,7 +12,7 @@ import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.WatchDog.DatabaseHelperFactory;
 import com.bunker.bkframework.server.resilience.SystemModule;
 
-public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, DatabaseConnectorBase  {
+public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, DatabaseConnectorBase {
 	public class QueryResult {
 		private String _TAG;
 		public PreparedStatement psmt;
@@ -45,6 +45,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	private DatabaseConnectorBase connector;
 	protected Connection mWriteConnection, mReadConnection;
 	private int mQueryCount = 0;
+	private int queryReport = 10;
 	private WatchDog mLog;
 
 	public static final int SUCCESS = 0;
@@ -81,6 +82,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public void setQueryReportCount(int count) {
+		this.queryReport = count;
 	}
 
 	@Override
@@ -280,7 +286,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 
 	private void queryFinish() {
 		mQueryCount++;
-		if (mQueryCount % 10 == 0) {
+		if (mQueryCount % queryReport == 0) {
 			Logger.logging("DatabaseHelper", getClass().getSimpleName() + " query count through " + mQueryCount);
 		}
 		if (mGarbages.size() > 100) {
