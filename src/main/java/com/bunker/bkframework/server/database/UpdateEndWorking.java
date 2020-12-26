@@ -45,7 +45,7 @@ public class UpdateEndWorking implements Working {
 			if (update.getDelegator() != null) {
 				try {
 					if (!update.getDelegator().delegate(result, transactionManager, workingResult)) {
-						Logger.err(_TAG, "rollback\n" + update.getFrom() + ":" + update.getQuery());
+						Logger.warning(_TAG, "rollback\n" + update.getFrom() + ":" + update.getQuery());
 						result.close();
 						rollback();
 						return;
