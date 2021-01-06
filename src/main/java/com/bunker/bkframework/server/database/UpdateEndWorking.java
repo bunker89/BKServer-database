@@ -37,11 +37,11 @@ public class UpdateEndWorking implements Working {
 		return result;
 	}
 	
-	synchronized void doTransaction(TransactionManager transactionManager, WorkingResult workingResult) {
+	synchronized public void doTransaction(TransactionManager transactionManager, WorkingResult workingResult) {
 		List<UpdateTransaction> updates = transactionManager.getTransactions();
 		
 		for (UpdateTransaction update : updates) {
-			QueryResult result = dbHelper.executeUpdateResult(update.getQuery(), _TAG);
+			QueryResult result = dbHelper.executeUpdateResult(update.getQuery(), _TAG + ":" + update.getFrom());
 			if (update.getDelegator() != null) {
 				try {
 					if (!update.getDelegator().delegate(result, transactionManager, workingResult)) {
