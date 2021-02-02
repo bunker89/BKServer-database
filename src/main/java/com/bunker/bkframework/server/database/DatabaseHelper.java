@@ -45,7 +45,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	private DatabaseConnectorBase connector;
 	protected Connection mWriteConnection, mReadConnection;
 	private int mQueryCount = 0;
-	private int queryReport = 10;
+	private int queryReport = 100;
 	private WatchDog mLog;
 
 	public static final int SUCCESS = 0;
@@ -289,7 +289,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		if (mQueryCount % queryReport == 0) {
 			Logger.logging("DatabaseHelper", getClass().getSimpleName() + " query count through " + mQueryCount);
 		}
-		if (mGarbages.size() > 100) {
+		if (mGarbages.size() > 500) {
 			String garbageTags = "----------------------------------------------\n";
 			
 			for (QueryResult q : mGarbages) {
