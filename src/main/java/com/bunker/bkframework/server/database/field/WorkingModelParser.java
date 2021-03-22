@@ -20,14 +20,15 @@ public class WorkingModelParser {
 			fieldData = new FieldData(json.getString("common"));
 			fields[i] = new FieldSet(fieldData, field);
 		}
-
-		for (int i = commonArray.length(); i < fields.length; i++) {
+		
+		int offset = commonArray.length();
+		for (int i = 0; i < differentArray.length(); i++) {
 			FieldData fieldData;
 			Field field;
 			JSONObject json = differentArray.getJSONObject(i);
 			field = getField(json, json.getString("type"));
 			fieldData = new FieldData(json.getString("packet"), json.getString("storage"));
-			fields[i] = new FieldSet(fieldData, field);
+			fields[offset + i] = new FieldSet(fieldData, field);
 		}
 		return fields;
 	}
