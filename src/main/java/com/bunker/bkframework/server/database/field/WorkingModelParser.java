@@ -21,7 +21,7 @@ public class WorkingModelParser {
 			fields[i] = new FieldSet(fieldData, field);
 		}
 
-		for (int i = commonArray.length(); i < differentArray.length(); i++) {
+		for (int i = commonArray.length(); i < fields.length; i++) {
 			FieldData fieldData;
 			Field field;
 			JSONObject json = differentArray.getJSONObject(i);
