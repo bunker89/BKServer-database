@@ -11,11 +11,11 @@ public class FieldData {
 		this.storageField = dataField;
 	}
 	
-	public FieldData(String commomField, String dataPrefix, byte c) {
-		this(commomField, dataPrefix + "." + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, commomField));
+	public FieldData(String commonField, String dataPrefix, byte c) {
+		this(commonField, dataPrefix + "." + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, commonField));
 	}
 	
-	public FieldData(String commomField) {
-		this(commomField, CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, commomField));
+	public FieldData(String commonField) {
+		this(commonField, CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, commonField));
 	}
 }

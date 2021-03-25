@@ -33,7 +33,7 @@ public class WorkingModelParser {
 		return fields;
 	}
 	
-	Field getField(JSONObject json, String type) {
+	protected Field getField(JSONObject json, String type) {
 		switch (type) {
 		case "int":
 			return IntField.instance;
