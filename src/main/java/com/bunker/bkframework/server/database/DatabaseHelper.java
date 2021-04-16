@@ -152,6 +152,29 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		queryFinish();
 		return result;
 	}
+
+	public QueryResult executeQueryCursor(String query, String tag) {
+		QueryResult result = new QueryResult();
+		PreparedStatement psmt = null;
+		try {
+			psmt = mReadConnection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			result.set = psmt.executeQuery();
+			result.psmt = psmt;
+			result._TAG = tag;
+		} catch (SQLException e) {
+			Logger.err(tag, query + "\n" + e.getMessage(), e);
+			result.succed = false;
+			if (psmt != null)
+				try {
+					psmt.close();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+		}
+		mGarbages.add(result);
+		queryFinish();
+		return result;
+	}
 	
 	@Deprecated
 	public int executeUpdate(String query, String tag) throws SQLException {
