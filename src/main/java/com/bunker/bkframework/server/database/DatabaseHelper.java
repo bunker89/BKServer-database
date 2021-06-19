@@ -46,7 +46,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	protected Connection mWriteConnection, mReadConnection;
 	private int mQueryCount = 0;
 	private int queryReport = 100;
-	private WatchDog mLog;
+	private WatchDog watchDog;
 
 	public static final int SUCCESS = 0;
 	public static final int FAIL = 1;
@@ -110,6 +110,8 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public void reConnectReadDb() {
 		try {
 			mReadConnection = (Connection) DriverManager.getConnection(mReadUrl, mReadId, mReadPass);
+			if (mUsingCommonDb)
+				mWriteConnection = mReadConnection;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -127,7 +129,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	}
 
 	protected void connect(DatabaseConnectorBase db) {
-		mLog = db.startWatchDog(this);
+		watchDog = db.startWatchDog(this);
 	}
 
 	public QueryResult executeQuery(String query, String tag) {
@@ -326,7 +328,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 
 	@Override
 	public boolean isStoped() {
-		return !mLog.checkLoop();
+		return !watchDog.checkLoop();
 	}
 
 	@Override

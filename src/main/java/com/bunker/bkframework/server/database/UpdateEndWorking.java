@@ -87,10 +87,4 @@ public class UpdateEndWorking implements Working {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	@Override
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

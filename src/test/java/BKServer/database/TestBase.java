@@ -1,6 +1,7 @@
 package BKServer.database;
 
 import com.bunker.bkframework.server.BKLauncher;
+import com.bunker.bkframework.server.database.DatabaseHelper;
 
 public class TestBase {
 	public TestBase() {

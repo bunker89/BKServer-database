@@ -18,6 +18,7 @@ public class WatchDog extends Thread implements LogComposite {
 	private String mName;
 	private boolean mCurrentState = true;;
 	private boolean mPastState = true;;
+	private int reconnectLoopGuard = 100;
 
 	public WatchDog(DatabaseConnectorBase base, DatabaseHelperFactory factory, boolean usingCommonDb) {
 		this(base, factory, usingCommonDb, null);
@@ -44,14 +45,18 @@ public class WatchDog extends Thread implements LogComposite {
 	}
 
 	public boolean checkLoop() {
+		if (reconnectLoopGuard < 0)
+			return false;
 		boolean state = true;
 		QueryResult result;
 		if (mBase.isReadConnected() != null) {
 			result = mHelperFactory.getDatabaseHelper().executeQuery("select * from dummy", "WatchDog");
 			if (!result.succed()) {
+				reconnectLoopGuard--;
+				result.close();
 				mBase.reConnectReadDb();
-			}
-			result.close();
+			} else
+				result.close();
 		} else {
 			state = false;
 			mPastState = false;
@@ -62,6 +67,8 @@ public class WatchDog extends Thread implements LogComposite {
 			if (mBase.isWriteConnected() != null) {
 				result = mHelperFactory.getDatabaseHelper().executeQueryAtWriteDatabase("select * from dummy", "WatchDog");
 				if (!result.succed()) {
+					reconnectLoopGuard--;
+					result.close();
 					mBase.reConnectWriteDb();
 				}
 				result.close();

@@ -24,10 +24,4 @@ public class UpdateStartWorking implements Working {
 	public String getName() {
 		return null;
 	}
-	
-	@Override
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
