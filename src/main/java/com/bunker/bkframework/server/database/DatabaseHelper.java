@@ -13,14 +13,20 @@ import com.bunker.bkframework.server.database.WatchDog.DatabaseHelperFactory;
 import com.bunker.bkframework.server.resilience.SystemModule;
 
 public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, DatabaseConnectorBase {
+	private final String _TAG = "DatabaseHelper";
 	public class QueryResult {
 		private String _TAG;
 		public PreparedStatement psmt;
 		private boolean succed = true;
 		public long result;
 		public ResultSet set;
+		private ConnectionWrapper wrapper;
 
 		public void close() {
+			if (wrapper != null) {
+				wrapper.freeConnection();
+				wrapper = null;
+			}
 			try {
 				if (psmt != null)
 					psmt.close();
@@ -31,19 +37,18 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				e.printStackTrace();
 			}
 		}
-		
+
 		public boolean succed() {
 			return succed;
 		}
 	}
-	
+
 	public interface CallDelegate {
 		public void bindCall(CallableStatement stmt) throws SQLException;
 	}
-	
+
 	private LinkedHashSet<QueryResult> mGarbages = new LinkedHashSet<QueryResult>();
-	private DatabaseConnectorBase connector;
-	protected Connection mWriteConnection, mReadConnection;
+	private ConnectionPool mWriteConnection, mReadConnection;
 	private int mQueryCount = 0;
 	private int queryReport = 100;
 	private WatchDog watchDog;
@@ -51,26 +56,41 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public static final int SUCCESS = 0;
 	public static final int FAIL = 1;
 
+	protected int poolCount = 6;
 	protected String mWriteUrl, mReadUrl;
 	protected String mWriteId, mReadId;
 	protected String mWritePass, mReadPass;
 	protected boolean mUsingCommonDb = false;
 	private final String _LOG = "DatabaseHelper";
 	protected String mWatchDogName = "WatchDog";
+	
+	public ConnectionPool getWriteConnectionPool() {
+		return mWriteConnection;
+	}
+	
+	public ConnectionPool getReadConnectionPool() {
+		return mReadConnection;
+	}
+
+	private ConnectionPool createConnectionPool(String url, String id, String pass) {
+		return new ConnectionPool(poolCount, new ConnectionFactory() {
+
+			@Override
+			public Connection createConnection() throws SQLException {
+				return (Connection) DriverManager.getConnection(url, id, pass);
+			}
+		});
+	}
 
 	protected void connectToDb() {
-		try {
-			mWriteConnection = (Connection) DriverManager.getConnection(mWriteUrl, mWriteId, mWritePass);
-			if (!mUsingCommonDb)
-				mReadConnection = (Connection) DriverManager.getConnection(mReadUrl, mReadId, mReadPass);
-			else
-				mReadConnection = mWriteConnection;
-			Logger.logging(_LOG, "Database Connect");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			connect(this);
-		}
+		mWriteConnection = createConnectionPool(mWriteUrl, mWriteId, mWritePass);
+
+		if (!mUsingCommonDb)
+			mReadConnection = createConnectionPool(mReadUrl, mReadId, mReadPass);
+		else
+			mReadConnection = mWriteConnection;
+		Logger.logging(_LOG, "Database Connect");
+		watchDog = startWatchDog(this);
 	}
 
 	//	private final String query = "select * from dummy";
@@ -83,15 +103,20 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void setQueryReportCount(int count) {
 		this.queryReport = count;
 	}
 
 	@Override
-	public Connection isWriteConnected() {
-		return mWriteConnection;
+	public boolean isWriteConnected() {
+		return mWriteConnection != null;
+	}
+
+	@Override
+	public boolean isReadConnected() {
+		return mReadConnection != null;
 	}
 
 	@Override
@@ -102,41 +127,26 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	}
 
 	@Override
-	public Connection isReadConnected() {
-		return mReadConnection;
+	public void reConnectReadDb() {
+		mReadConnection = createConnectionPool(mReadUrl, mReadId, mReadPass);
+		if (mUsingCommonDb)
+			mWriteConnection = mReadConnection;
 	}
 
-	@Override
-	public void reConnectReadDb() {
-		try {
-			mReadConnection = (Connection) DriverManager.getConnection(mReadUrl, mReadId, mReadPass);
-			if (mUsingCommonDb)
-				mWriteConnection = mReadConnection;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	@Override
 	public void reConnectWriteDb() {
 		if (!mUsingCommonDb) {
-			try {
-				mWriteConnection = (Connection) DriverManager.getConnection(mWriteUrl, mWriteId, mWritePass);
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			mWriteConnection = createConnectionPool(mWriteUrl, mWriteId, mWritePass);
 		}
-	}
-
-	protected void connect(DatabaseConnectorBase db) {
-		watchDog = db.startWatchDog(this);
 	}
 
 	public QueryResult executeQuery(String query, String tag) {
 		QueryResult result = new QueryResult();
 		PreparedStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
 		try {
-			psmt = mReadConnection.prepareStatement(query);
+			psmt = wrapper.getConnection().prepareStatement(query);
 			result.set = psmt.executeQuery();
 			result.psmt = psmt;
 			result._TAG = tag;
@@ -147,7 +157,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 		mGarbages.add(result);
@@ -158,8 +168,10 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public QueryResult executeQueryCursor(String query, String tag) {
 		QueryResult result = new QueryResult();
 		PreparedStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
 		try {
-			psmt = mReadConnection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			psmt = wrapper.getConnection().prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			result.set = psmt.executeQuery();
 			result.psmt = psmt;
 			result._TAG = tag;
@@ -170,19 +182,10 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 		mGarbages.add(result);
-		queryFinish();
-		return result;
-	}
-	
-	@Deprecated
-	public int executeUpdate(String query, String tag) throws SQLException {
-		PreparedStatement psmt = mWriteConnection.prepareStatement(query);
-		int result = psmt.executeUpdate();
-		psmt.close();
 		queryFinish();
 		return result;
 	}
@@ -191,9 +194,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		QueryResult result = new QueryResult();
 		result.result = -1;
 		PreparedStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
 
 		try {
-			psmt = mWriteConnection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+			psmt = wrapper.getConnection().prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
 			result.result = psmt.executeUpdate();
 			result.set = psmt.getGeneratedKeys();
 			result.psmt = psmt;
@@ -205,7 +210,34 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
+				}
+		}
+
+		mGarbages.add(result);
+		queryFinish();
+		return result;
+	}
+
+	public QueryResult executeUpdateNoAutoFree(ConnectionWrapper wrapper, String query, String tag) {
+		QueryResult result = new QueryResult();
+		result.result = -1;
+		PreparedStatement psmt = null;
+
+		try {
+			psmt = wrapper.getConnection().prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+			result.result = psmt.executeUpdate();
+			result.set = psmt.getGeneratedKeys();
+			result.psmt = psmt;
+			result._TAG = tag;
+		} catch (SQLException e) {
+			Logger.err(tag, query + "\n" + e.getMessage(), e);
+			result.succed = false;
+			if (psmt != null)
+				try {
+					psmt.close();
+				} catch (SQLException e1) {
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 
@@ -218,8 +250,10 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		QueryResult result = new QueryResult();
 		result._TAG = tag;
 		PreparedStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+
 		try {
-			psmt = mWriteConnection.prepareStatement(query, columnNames);
+			psmt = wrapper.getConnection().prepareStatement(query, columnNames);
 			result.result = psmt.executeUpdate();
 			result.set = psmt.getGeneratedKeys();
 			result.psmt = psmt;
@@ -231,7 +265,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 		queryFinish();
@@ -243,8 +277,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		QueryResult result = new QueryResult();
 		result._TAG = tag;
 		CallableStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
+
 		try {
-			psmt = mWriteConnection.prepareCall(query);
+			psmt = wrapper.getConnection().prepareCall(query);
 			call.bindCall(psmt);
 			result.succed = psmt.execute();
 			result.set = psmt.getGeneratedKeys();
@@ -257,7 +294,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 		queryFinish();
@@ -268,8 +305,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public QueryResult executeQueryAtWriteDatabase(String query, String tag) {
 		QueryResult result = new QueryResult();
 		PreparedStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
+
 		try {
-			psmt = mWriteConnection.prepareStatement(query);
+			psmt = wrapper.getConnection().prepareStatement(query);
 			result.set = psmt.executeQuery();
 			result.psmt = psmt;
 			result._TAG = tag;
@@ -281,7 +321,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				try {
 					psmt.close();
 				} catch (SQLException e1) {
-					e1.printStackTrace();
+					Logger.err(_TAG, query + "close error", e);
 				}
 		}
 		mGarbages.add(result);
@@ -290,18 +330,14 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	}
 
 	public static String wrapString(String str) {
-//		if (str == null)
-//			return null;
-//		return new String("'" + str + "'");
+		//		if (str == null)
+		//			return null;
+		//		return new String("'" + str + "'");
 		if (str == null)
 			return null;
 
 		str = str.replace("'", "\'\'");
 		return new String("'" + str + "'");
-	}
-
-	public void setConnection() {
-		mWriteConnection = connector.isWriteConnected();
 	}
 
 	@Override
@@ -312,17 +348,17 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	private void queryFinish() {
 		mQueryCount++;
 		if (mQueryCount % queryReport == 0) {
-			Logger.logging("DatabaseHelper", getClass().getSimpleName() + " query count through " + mQueryCount);
+			Logger.logging(_TAG, getClass().getSimpleName() + " query count through " + mQueryCount);
 		}
 		if (mGarbages.size() > 500) {
 			String garbageTags = "----------------------------------------------\n";
-			
+
 			for (QueryResult q : mGarbages) {
 				garbageTags += q._TAG + "\n";
 			}
 
 			garbageTags += "\n----------------------------------------------";
-			Logger.logging("DatabaseHelper", "prepared statement garbages accumulated\n" + garbageTags);
+			Logger.logging(_TAG, "prepared statement garbages accumulated\n" + garbageTags);
 		}
 	}
 

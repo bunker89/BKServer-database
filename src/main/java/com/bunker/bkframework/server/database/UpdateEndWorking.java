@@ -16,65 +16,72 @@ import com.bunker.bkframework.server.working.WorkingResult;
 public class UpdateEndWorking implements Working {
 	private final DatabaseHelper dbHelper;
 	private final String _TAG = "UpdateEndWorking";
-	
+
 	public UpdateEndWorking(DatabaseHelper dbHelper) {
 		this.dbHelper = dbHelper;
 		try {
-			dbHelper.mWriteConnection.setAutoCommit(false);
+			dbHelper.getWriteConnectionPool().setAutoCommit(false);
 		} catch (SQLException e) {
 			Logger.err(_TAG, "set auto commit error", e);
 		}
 	}
-	
+
 	@Override
 	public WorkingResult doWork(JSONObject object, Map<String, Object> enviroment, WorkTrace trace) {
 		WorkingResult result = new WorkingResult();
 		result.putReplyParam(WorkConstants.WORKING_RESULT, true);
-		
+
 		TransactionManager transactionManager = (TransactionManager) object.get(BkDatabaseConstants.UPDATE_TRANSACTION_MANAGER);
 		if (transactionManager.size() > 0)
 			doTransaction(transactionManager, result);
 		return result;
 	}
-	
-	synchronized public void doTransaction(TransactionManager transactionManager, WorkingResult workingResult) {
-		List<UpdateTransaction> updates = transactionManager.getTransactions();
-		
-		for (UpdateTransaction update : updates) {
-			QueryResult result = dbHelper.executeUpdateResult(update.getQuery(), _TAG + ":" + update.getFrom());
-			if (update.getDelegator() != null) {
-				try {
-					if (!update.getDelegator().delegate(result, transactionManager, workingResult)) {
-						workingResult.putReplyParam(WorkConstants.WORKING_RESULT, false);
-						Logger.warning(_TAG, "rollback\n" + update.getFrom() + ":" + update.getQuery());
+
+	public void doTransaction(TransactionManager transactionManager, WorkingResult workingResult) {
+		ConnectionWrapper cWrapper = dbHelper.getWriteConnectionPool().allocateConnection();
+
+		synchronized (cWrapper) {			
+			List<UpdateTransaction> updates = transactionManager.getTransactions();
+
+			for (UpdateTransaction update : updates) {
+				QueryResult result = dbHelper.executeUpdateNoAutoFree(cWrapper, update.getQuery(), _TAG + ":" + update.getFrom());
+				if (update.getDelegator() != null) {
+					try {
+						if (!update.getDelegator().delegate(result, transactionManager, workingResult)) {
+							workingResult.putReplyParam(WorkConstants.WORKING_RESULT, false);
+							Logger.warning(_TAG, "rollback\n" + update.getFrom() + ":" + update.getQuery());
+							result.close();
+							rollback(cWrapper);
+							return;
+						}
+					} catch (SQLException e) {
+						Logger.err(_TAG, update.getFrom() + ": delegate error:" + update.getQuery());
 						result.close();
-						rollback();
+						rollback(cWrapper);
+						cWrapper.freeConnection();
 						return;
 					}
-				} catch (SQLException e) {
-					Logger.err(_TAG, update.getFrom() + ": delegate error:" + update.getQuery());
-					result.close();
-					rollback();
+				}
+				result.close();
+				if (!result.succed()) {
+					Logger.err(_TAG, update.getFrom() + ":" + update.getQuery());
+					rollback(cWrapper);
+					cWrapper.freeConnection();
 					return;
 				}
 			}
-			result.close();
-			if (!result.succed()) {
-				Logger.err(_TAG, update.getFrom() + ":" + update.getQuery());
-				rollback();
-				return;
+			try {
+				cWrapper.commit();
+			} catch (SQLException e) {
+				Logger.err(_TAG, "commit error " + updates.toString(), e);
 			}
 		}
-		try {
-			dbHelper.mWriteConnection.commit();
-		} catch (SQLException e) {
-			Logger.err(_TAG, "commit error " + updates.toString(), e);
-		}
+		cWrapper.freeConnection();
 	}
-	
-	private void rollback() {
+
+	private void rollback(ConnectionWrapper wrapper) {
 		try {
-			dbHelper.mWriteConnection.rollback();
+			wrapper.rollback();
 			return;
 		} catch (SQLException e) {
 			Logger.err(_TAG, "rollback error", e);
@@ -84,7 +91,6 @@ public class UpdateEndWorking implements Working {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return _TAG;
 	}
 }

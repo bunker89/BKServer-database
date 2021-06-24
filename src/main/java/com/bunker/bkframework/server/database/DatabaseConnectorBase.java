@@ -1,7 +1,5 @@
 package com.bunker.bkframework.server.database;
 
-import java.sql.Connection;
-
 import com.bunker.bkframework.server.database.WatchDog.DatabaseHelperFactory;
 
 public interface DatabaseConnectorBase {
@@ -10,8 +8,8 @@ public interface DatabaseConnectorBase {
 	 */
 	public void destroy();	
 	public void setQueryReportCount(int report);
-	public Connection isWriteConnected();
-	public Connection isReadConnected();
+	public boolean isWriteConnected();
+	public boolean isReadConnected();
 	public WatchDog startWatchDog(DatabaseHelperFactory factory);
 	public void reConnectReadDb();
 	public void reConnectWriteDb();

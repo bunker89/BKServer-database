@@ -27,6 +27,7 @@ dependencies {
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+    testImplementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.25'
     
     implementation 'com.github.bunker89:JSQLBuilder:2df556bc28'
     
@@ -38,5 +39,5 @@ dependencies {
     implementation 'com.github.bunker89:BKFramwork:b751fa98c2'
 	implementation 'com.github.bunker89:BKClientAPI:412521ff9a'
 	implementation 'com.github.bunker89:BKServerAPI:b4ef09c99e'
-    
+ 
 }
