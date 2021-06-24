@@ -73,6 +73,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	}
 
 	private ConnectionPool createConnectionPool(String url, String id, String pass) {
+		Logger.logging(_LOG, "Database Connect");
 		return new ConnectionPool(poolCount, new ConnectionFactory() {
 
 			@Override
@@ -89,7 +90,6 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 			mReadConnection = createConnectionPool(mReadUrl, mReadId, mReadPass);
 		else
 			mReadConnection = mWriteConnection;
-		Logger.logging(_LOG, "Database Connect");
 		watchDog = startWatchDog(this);
 	}
 
@@ -140,6 +140,30 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		}
 	}
 
+	QueryResult executeQuery(ConnectionWrapper wrapper, String query, String tag) {
+		QueryResult result = new QueryResult();
+		PreparedStatement psmt = null;
+		result.wrapper = wrapper;
+		try {
+			psmt = wrapper.getConnection().prepareStatement(query);
+			result.set = psmt.executeQuery();
+			result.psmt = psmt;
+			result._TAG = tag;
+		} catch (SQLException e) {
+			Logger.err(tag, query + "\n" + e.getMessage(), e);
+			result.succed = false;
+			if (psmt != null)
+				try {
+					psmt.close();
+				} catch (SQLException e1) {
+					Logger.err(_TAG, query + "close error", e);
+				}
+		}
+		mGarbages.add(result);
+		queryFinish();
+		return result;
+	}
+	
 	public QueryResult executeQuery(String query, String tag) {
 		QueryResult result = new QueryResult();
 		PreparedStatement psmt = null;

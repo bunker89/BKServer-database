@@ -37,6 +37,10 @@ public class ConnectionPool {
 		return wrappers[index];
 	}
 	
+	ConnectionWrapper[] getConnections() {
+		return wrappers;
+	}
+	
 	/**
 	 * 
 	 * Connection can exit without free.
