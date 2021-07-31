@@ -48,7 +48,6 @@ public class WatchDog extends Thread implements LogComposite {
 	}
 
 	public boolean checkLoop() {
-		Logger.logging(_TAG, "check looping");
 		if (reconnectLoopGuard < 0)
 			return false;
 		boolean state = true;

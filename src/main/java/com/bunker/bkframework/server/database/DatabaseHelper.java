@@ -275,7 +275,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		result._TAG = tag;
 		PreparedStatement psmt = null;
 		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
-
+		
 		try {
 			psmt = wrapper.getConnection().prepareStatement(query, columnNames);
 			result.result = psmt.executeUpdate();

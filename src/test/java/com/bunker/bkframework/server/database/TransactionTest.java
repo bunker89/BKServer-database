@@ -8,8 +8,6 @@ import com.bunker.bkframework.newframework.Logger;
 
 public class TransactionTest extends TestBase {
 	private final String _TAG = "TransactionTest";
-
-
 	@Test
 	public void test() {
 		try {
