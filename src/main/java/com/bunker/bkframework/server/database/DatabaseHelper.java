@@ -61,6 +61,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	protected String mWriteId, mReadId;
 	protected String mWritePass, mReadPass;
 	protected boolean mUsingCommonDb = false;
+	private boolean autoCommit = true;
 	private final String _LOG = "DatabaseHelper";
 	protected String mWatchDogName = "WatchDog";
 	
@@ -82,10 +83,10 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 			}
 		});
 	}
-
+	
 	protected void connectToDb() {
 		mWriteConnection = createConnectionPool(mWriteUrl, mWriteId, mWritePass);
-
+		
 		if (!mUsingCommonDb)
 			mReadConnection = createConnectionPool(mReadUrl, mReadId, mReadPass);
 		else
@@ -93,8 +94,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		watchDog = startWatchDog(this);
 	}
 
-	//	private final String query = "select * from dummy";
+	public void setAutoCommit(boolean b) {
+		autoCommit = b;
+	}
 
+	//	private final String query = "select * from dummy";
 	@Override
 	public void destroy() {
 		try {
@@ -129,8 +133,15 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	@Override
 	public void reConnectReadDb() {
 		mReadConnection = createConnectionPool(mReadUrl, mReadId, mReadPass);
-		if (mUsingCommonDb)
+		if (mUsingCommonDb) {
 			mWriteConnection = mReadConnection;
+			if (!autoCommit)
+				try {
+					mWriteConnection.setAutoCommit(autoCommit);
+				} catch (SQLException e) {
+					Logger.err(_TAG, "re connect db auto commit eror", e);
+				}
+		}
 	}
 
 	@Override

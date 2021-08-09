@@ -3,7 +3,6 @@ package com.bunker.bkframework.server.database;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.reserved.LogComposite;
 import com.bunker.bkframework.server.reserved.Pair;

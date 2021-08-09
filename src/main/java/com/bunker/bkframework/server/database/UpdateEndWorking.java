@@ -19,13 +19,9 @@ public class UpdateEndWorking implements Working {
 
 	public UpdateEndWorking(DatabaseHelper dbHelper) {
 		this.dbHelper = dbHelper;
-		try {
-			dbHelper.getWriteConnectionPool().setAutoCommit(false);
-		} catch (SQLException e) {
-			Logger.err(_TAG, "set auto commit error", e);
-		}
+		dbHelper.setAutoCommit(false);
 	}
-
+	
 	@Override
 	public WorkingResult doWork(JSONObject object, Map<String, Object> enviroment, WorkTrace trace) {
 		WorkingResult result = new WorkingResult();

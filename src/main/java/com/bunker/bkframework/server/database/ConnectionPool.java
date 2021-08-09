@@ -50,7 +50,7 @@ public class ConnectionPool {
 	public void freeConnection(int index) {
 	}
 	
-	public void setAutoCommit(boolean bool) throws SQLException {
+	void setAutoCommit(boolean bool) throws SQLException {
 		for (ConnectionWrapper wrapper : wrappers) {
 			wrapper.getConnection().setAutoCommit(bool);
 		}
