@@ -56,7 +56,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public static final int SUCCESS = 0;
 	public static final int FAIL = 1;
 
-	protected int poolCount = 6;
+	protected int poolCount = 3;
 	protected String mWriteUrl, mReadUrl;
 	protected String mWriteId, mReadId;
 	protected String mWritePass, mReadPass;
@@ -96,6 +96,11 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 
 	public void setAutoCommit(boolean b) {
 		autoCommit = b;
+		try {
+			mWriteConnection.setAutoCommit(b);
+		} catch (SQLException e) {
+			Logger.err(_TAG, "set autocommit error", e);
+		}
 	}
 
 	//	private final String query = "select * from dummy";
@@ -107,12 +112,12 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 			e.printStackTrace();
 		}
 	}
-
+	
 	@Override
 	public void setQueryReportCount(int count) {
 		this.queryReport = count;
 	}
-
+	
 	@Override
 	public boolean isWriteConnected() {
 		return mWriteConnection != null;
@@ -148,6 +153,12 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 	public void reConnectWriteDb() {
 		if (!mUsingCommonDb) {
 			mWriteConnection = createConnectionPool(mWriteUrl, mWriteId, mWritePass);
+			if (!autoCommit)
+				try {
+					mWriteConnection.setAutoCommit(autoCommit);
+				} catch (SQLException e) {
+					Logger.err(_TAG, "re connect db auto commit eror", e);
+				}
 		}
 	}
 

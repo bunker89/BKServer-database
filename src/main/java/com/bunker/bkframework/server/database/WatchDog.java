@@ -3,6 +3,7 @@ package com.bunker.bkframework.server.database;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.reserved.LogComposite;
 import com.bunker.bkframework.server.reserved.Pair;
@@ -60,6 +61,7 @@ public class WatchDog extends Thread implements LogComposite {
 					reconnectLoopGuard--;
 					result.close();
 					mBase.reConnectReadDb();
+					Logger.logging(_TAG, "db read reconnect");
 					break;
 				} else
 					result.close();
@@ -80,6 +82,7 @@ public class WatchDog extends Thread implements LogComposite {
 						reconnectLoopGuard--;
 						result.close();
 						mBase.reConnectWriteDb();
+						Logger.logging(_TAG, "db write reconnect");
 						break;
 					}
 					result.close();
