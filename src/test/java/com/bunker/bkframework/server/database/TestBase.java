@@ -5,7 +5,7 @@ import com.bunker.bkframework.server.BKLauncher;
 public class TestBase {
 	public TestBase() {
 		System.out.println("TestBase init");
-		BKLauncher.init();
+		BKLauncher.init(null);
 		BKLauncher launcher = BKLauncher.getLauncher();
 		String dbUrl = (String) launcher.getSystemParam("db_url");
 		String id = (String) launcher.getSystemParam("db_id");

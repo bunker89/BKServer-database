@@ -36,8 +36,8 @@ dependencies {
 	implementation group: 'org.json', name: 'json', version: '20180813'
 	implementation 'com.squareup.okhttp3:okhttp:4.2.1'
 
-    implementation 'com.github.bunker89:BKFramwork:b751fa98c2'
-	implementation 'com.github.bunker89:BKClientAPI:412521ff9a'
-	implementation 'com.github.bunker89:BKServerAPI:b4ef09c99e'
+    implementation 'com.github.bunker89:BKFramwork:3a04ee2f76'
+	implementation 'com.github.bunker89:BKClientAPI:de9a3d4078'
+	implementation 'com.github.bunker89:BKServerAPI:48dd2ca5ae'
  
 }
