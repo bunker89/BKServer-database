@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import com.bunker.jsqlbuilder.WriteQueryBuilder;
 
 public class TimeMSField extends LongField {
-	public static TimeMSField instance = new TimeMSField();
+	public static final TimeMSField instance = new TimeMSField();
 
 	@Override
 	public void toData(WriteQueryBuilder writeBuilder, JSONObject json, FieldData fieldData) {

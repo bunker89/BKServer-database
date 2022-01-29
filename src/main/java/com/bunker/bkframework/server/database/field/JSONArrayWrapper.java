@@ -20,6 +20,7 @@ public class JSONArrayWrapper extends JSONObject {
 		array.put(value);
 		return this;
 	}
+	
 	@Override
 	public JSONObject put(String key, int value) throws JSONException {
 		array.put(value);

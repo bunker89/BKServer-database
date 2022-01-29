@@ -12,6 +12,6 @@ public class GenKeyField extends StringField {
 	@Override
 	public void toData(WriteQueryBuilder writeBuilder, JSONObject json, FieldData fieldData) {
 		String key = UUID.randomUUID().toString().replace("-", "");
-		writeBuilder.insertField(fieldData.storageField, key);
+		writeBuilder.insertFieldWrap(fieldData.storageField, key);
 	}
 }
