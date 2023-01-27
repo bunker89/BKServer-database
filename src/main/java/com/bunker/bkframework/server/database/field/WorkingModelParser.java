@@ -37,19 +37,21 @@ public class WorkingModelParser {
 		switch (type) {
 		case "int":
 			return IntField.instance;
-		case "float":
-			return FloatField.instance;
-		case "double":
-			return DoubleField.instance;
-		case "boolean":
-			return BooleanField.instance;
-		case "string":
-			return StringField.instance;
-		case "long":
-			return LongField.instance;
-		case "json":
-			return new JSONObjectField(parse(json.getJSONObject("child")));
-		case "genkey":
+			case "float":
+				return FloatField.instance;
+			case "double":
+				return DoubleField.instance;
+			case "boolean":
+				return BooleanField.instance;
+			case "string":
+				return StringField.instance;
+			case "long":
+				return LongField.instance;
+			case "json":
+				return JSONField.instance;
+			case "json-child":
+				return new JSONObjectField(parse(json.getJSONObject("child")));
+			case "genkey":
 			return GenKeyField.instance;
 		case "time":
 			return TimeMSField.instance;

@@ -11,26 +11,7 @@ import com.bunker.jsqlbuilder.WriteQueryBuilder;
 
 public class JSONObjectField implements Field {
 	FieldSet[] fields;
-	
-	public static class Builder {
-		List<FieldSet> fields = new LinkedList<>();
-		
-		public Builder pushField(FieldData fieldData, Field field) {
-			FieldSet fieldSet = new FieldSet(fieldData, field);
-			fields.add(fieldSet);
-			return this;
-		}
-		
-		public JSONObjectField build() {
-			JSONObjectField jsonField = new JSONObjectField();
-			jsonField.fields = (FieldSet[]) fields.toArray();
-			return jsonField;
-		}
-	}
-	
-	private JSONObjectField() {
-	}
-	
+
 	public JSONObjectField(FieldSet[] fields) {
 		this.fields = fields;
 	}

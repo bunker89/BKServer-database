@@ -1,7 +1,5 @@
 package com.bunker.bkframework.server.database;
 
-import com.bunker.bkframework.server.database.DatabaseHelper;
-
 public class TestDatabaseHelper extends DatabaseHelper {
 	private static TestDatabaseHelper singleton;
 	

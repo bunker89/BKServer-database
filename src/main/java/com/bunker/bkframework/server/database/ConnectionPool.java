@@ -14,10 +14,8 @@ public class ConnectionPool {
 		wrappers = new ConnectionWrapper[size];
 		
 		for (int i = 0; i < size; i++) {
-			Connection connection;
 			try {
-				connection = factory.createConnection();
-				wrappers[i] = new ConnectionWrapper(connection, this, i);
+				wrappers[i] = new ConnectionWrapper(factory, this, i);
 			} catch (SQLException e) {
 				Logger.err(_TAG, null, e);
 			}

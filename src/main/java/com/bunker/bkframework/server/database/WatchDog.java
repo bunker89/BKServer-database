@@ -7,6 +7,7 @@ import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.reserved.LogComposite;
 import com.bunker.bkframework.server.reserved.Pair;
+import sun.security.util.Debug;
 
 public class WatchDog extends Thread implements LogComposite {
 	private final String _TAG = "WatchDog";
@@ -20,7 +21,7 @@ public class WatchDog extends Thread implements LogComposite {
 	private String mName;
 	private boolean mCurrentState = true;;
 	private boolean mPastState = true;;
-	private int reconnectLoopGuard = 5;
+	private int reconnectLoopGuard = 1000;
 
 	public WatchDog(DatabaseConnectorBase base, DatabaseHelperFactory factory, boolean usingCommonDb) {
 		this(base, factory, usingCommonDb, null);
@@ -38,9 +39,13 @@ public class WatchDog extends Thread implements LogComposite {
 	public void run() {
 		try {
 			while (true) {
-				Thread.sleep(1800000);
+				Thread.sleep(900000);
 //				Thread.sleep(3000);
-				mCurrentState = checkLoop();
+				try {
+					mCurrentState = checkLoop();
+				} catch (Exception e) {
+					Logger.err("WatchDog", "watch dog exception", e);
+				}
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -50,21 +55,23 @@ public class WatchDog extends Thread implements LogComposite {
 	public boolean checkLoop() {
 		if (reconnectLoopGuard < 0)
 			return false;
+		Logger.logging("WatchDog", "looping");
 		boolean state = true;
 		QueryResult result;
 		if (mBase.isReadConnected()) {
 			ConnectionWrapper []wrappers = mHelperFactory.getDatabaseHelper().getReadConnectionPool().getConnections();
 
 			for (ConnectionWrapper wrapper : wrappers) {
-				result = mHelperFactory.getDatabaseHelper().executeQuery(wrapper, "select * from dummy", "WatchDog");
+				result = mHelperFactory.getDatabaseHelper().executeQuery(wrapper, "select 1", "WatchDog");
 				if (!result.succed()) {
 					reconnectLoopGuard--;
 					result.close();
-					mBase.reConnectReadDb();
+					wrapper.reConnect();
 					Logger.logging(_TAG, "db read reconnect");
 					break;
-				} else
+				} else {
 					result.close();
+				}
 			}
 		} else {
 			state = false;
@@ -77,11 +84,11 @@ public class WatchDog extends Thread implements LogComposite {
 				ConnectionWrapper []wrappers = mHelperFactory.getDatabaseHelper().getWriteConnectionPool().getConnections();
 
 				for (ConnectionWrapper wrapper : wrappers) {
-					result = mHelperFactory.getDatabaseHelper().executeQuery(wrapper, "select * from dummy", "WatchDog");
+					result = mHelperFactory.getDatabaseHelper().executeQuery(wrapper, "select 1", "WatchDog");
 					if (!result.succed()) {
 						reconnectLoopGuard--;
 						result.close();
-						mBase.reConnectWriteDb();
+						wrapper.reConnect();
 						Logger.logging(_TAG, "db write reconnect");
 						break;
 					}

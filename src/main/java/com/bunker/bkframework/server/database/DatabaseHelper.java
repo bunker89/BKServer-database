@@ -79,7 +79,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 
 			@Override
 			public Connection createConnection() throws SQLException {
-				return (Connection) DriverManager.getConnection(url, id, pass);
+				return DriverManager.getConnection(url, id, pass);
 			}
 		});
 	}
