@@ -38,6 +38,6 @@ dependencies {
 
     implementation 'com.github.bunker89:BKFramwork:3a04ee2f76'
 	implementation 'com.github.bunker89:BKClientAPI:de9a3d4078'
-	implementation 'com.github.bunker89:BKServerAPI:30aee158c6'
+	implementation 'com.github.bunker89:BKServerAPI:d0267201c8'
  
 }
