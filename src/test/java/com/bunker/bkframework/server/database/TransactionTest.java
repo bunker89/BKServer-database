@@ -2,9 +2,9 @@ package com.bunker.bkframework.server.database;
 
 import java.sql.SQLException;
 
-import org.junit.Test;
 
 import com.bunker.bkframework.newframework.Logger;
+import org.junit.jupiter.api.Test;
 
 public class TransactionTest extends TestBase {
 	private final String _TAG = "TransactionTest";

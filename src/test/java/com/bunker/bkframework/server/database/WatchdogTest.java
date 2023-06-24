@@ -1,6 +1,6 @@
 package com.bunker.bkframework.server.database;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WatchdogTest extends TestBase {
 	@Test

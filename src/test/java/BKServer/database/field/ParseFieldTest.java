@@ -1,9 +1,9 @@
 package BKServer.database.field;
 
 import org.json.JSONObject;
-import org.junit.Test;
 
 import com.bunker.bkframework.server.database.field.WorkingModelParser;
+import org.junit.jupiter.api.Test;
 
 public class ParseFieldTest {
 	@Test

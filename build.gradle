@@ -26,7 +26,6 @@ dependencies {
     implementation 'com.google.guava:guava:28.0-jre'
 
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
     testImplementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.25'
     
     implementation 'com.github.bunker89:JSQLBuilder:2df556bc28'
@@ -39,5 +38,8 @@ dependencies {
     implementation 'com.github.bunker89:BKFramwork:3a04ee2f76'
 	implementation 'com.github.bunker89:BKClientAPI:de9a3d4078'
 	implementation 'com.github.bunker89:BKServerAPI:d0267201c8'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
  
 }
