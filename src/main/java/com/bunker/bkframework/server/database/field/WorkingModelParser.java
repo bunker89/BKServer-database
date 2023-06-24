@@ -9,26 +9,24 @@ public class WorkingModelParser {
 				: new JSONArray();
 		JSONArray differentArray = fieldJSON.has("different") ? fieldJSON.getJSONArray("different")
 				: new JSONArray();
-		
+
 		FieldSet[] fields = new FieldSet[commonArray.length() + differentArray.length()];
 		
 		for (int i = 0; i < commonArray.length(); i++) {
-			FieldData fieldData;
-			Field field;
 			JSONObject json = commonArray.getJSONObject(i);
-			field = getField(json, json.getString("type"));
-			fieldData = new FieldData(json.getString("common"));
-			fields[i] = new FieldSet(fieldData, field);
+			FieldData fieldData = new FieldData(json.getString("common"));
+			Field field = getField(json, json.getString("type"));
+			boolean optional = json.has("optional") ? json.getBoolean("optional") : false;
+			fields[i] = new FieldSet(fieldData, field, optional);
 		}
 		
 		int offset = commonArray.length();
 		for (int i = 0; i < differentArray.length(); i++) {
-			FieldData fieldData;
-			Field field;
 			JSONObject json = differentArray.getJSONObject(i);
-			field = getField(json, json.getString("type"));
-			fieldData = new FieldData(json.getString("packet"), json.getString("storage"));
-			fields[offset + i] = new FieldSet(fieldData, field);
+			Field field = getField(json, json.getString("type"));
+			FieldData fieldData = new FieldData(json.getString("packet"), json.getString("storage"));
+			boolean optional = json.has("optional") ? json.getBoolean("optional") : false;
+			fields[offset + i] = new FieldSet(fieldData, field, optional);
 		}
 		return fields;
 	}
