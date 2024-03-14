@@ -51,7 +51,7 @@ public class UpdateEndWorking implements Working {
 							return;
 						}
 					} catch (SQLException e) {
-						Logger.err(_TAG, update.getFrom() + ": delegate error:" + update.getQuery());
+						Logger.err(_TAG, update.getFrom() + ": delegate error:" + update.getQuery(), e);
 						result.close();
 						rollback(cWrapper);
 						cWrapper.freeConnection();

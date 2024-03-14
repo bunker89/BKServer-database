@@ -1,16 +1,11 @@
 package com.bunker.bkframework.server.database;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.LinkedHashSet;
-
 import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.WatchDog.DatabaseHelperFactory;
 import com.bunker.bkframework.server.resilience.SystemModule;
+
+import java.sql.*;
+import java.util.LinkedHashSet;
 
 public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, DatabaseConnectorBase {
 	private final String _TAG = "DatabaseHelper";
@@ -329,7 +324,8 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		try {
 			psmt = wrapper.getConnection().prepareCall(query);
 			call.bindCall(psmt);
-			result.succed = psmt.execute();
+			psmt.execute();
+			result.succed = true;
 			result.set = psmt.getGeneratedKeys();
 			result.psmt = psmt;
 			result._TAG = tag;
