@@ -7,7 +7,6 @@ import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.reserved.LogComposite;
 import com.bunker.bkframework.server.reserved.Pair;
-import sun.security.util.Debug;
 
 public class WatchDog extends Thread implements LogComposite {
 	private final String _TAG = "WatchDog";

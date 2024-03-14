@@ -1,17 +1,16 @@
 package com.bunker.bkframework.server.database;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONObject;
-
 import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.framework_api.WorkTrace;
 import com.bunker.bkframework.server.working.WorkConstants;
 import com.bunker.bkframework.server.working.Working;
 import com.bunker.bkframework.server.working.WorkingResult;
+import org.json.JSONObject;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 public class UpdateEndWorking implements Working {
 	private final DatabaseHelper dbHelper;
@@ -40,7 +39,8 @@ public class UpdateEndWorking implements Working {
 			List<UpdateTransaction> updates = transactionManager.getTransactions();
 
 			for (UpdateTransaction update : updates) {
-				QueryResult result = dbHelper.executeUpdateNoAutoFree(cWrapper, update.getQuery(), _TAG + ":" + update.getFrom());
+				QueryResult result = update.schedule(dbHelper, cWrapper, update, _TAG);
+//				QueryResult result = dbHelper.executeUpdateNoAutoFree(cWrapper, update.getQuery(), _TAG + ":" + update.getFrom());
 				if (update.getDelegator() != null) {
 					try {
 						if (!update.getDelegator().delegate(result, transactionManager, workingResult)) {
