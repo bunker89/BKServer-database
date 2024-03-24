@@ -313,7 +313,37 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		return result;
 	}
 
-	public QueryResult executeCall(ConnectionWrapper wrapper, String query, CallDelegate call, String tag) {
+	public QueryResult executeCall(String query, CallDelegate call, String tag) {
+		QueryResult result = new QueryResult();
+		result._TAG = tag;
+		CallableStatement psmt = null;
+		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
+		result.wrapper = wrapper;
+
+		try {
+			psmt = wrapper.getConnection().prepareCall(query);
+			call.bindCall(psmt);
+			psmt.execute();
+			result.succed = true;
+			result.set = psmt.getGeneratedKeys();
+			result.psmt = psmt;
+			result._TAG = tag;
+		} catch (SQLException e) {
+			Logger.err(tag, query + "\n" + e.getMessage(), e);
+			result.succed = false;
+			if (psmt != null)
+				try {
+					psmt.close();
+				} catch (SQLException e1) {
+					Logger.err(_TAG, query + "close error", e);
+				}
+		}
+		queryFinish();
+		mGarbages.add(result);
+		return result;
+	}
+
+	public QueryResult executeCallWithWrapper(ConnectionWrapper wrapper, String query, CallDelegate call, String tag) {
 		QueryResult result = new QueryResult();
 		result._TAG = tag;
 		CallableStatement psmt = null;
@@ -341,7 +371,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		mGarbages.add(result);
 		return result;
 	}
-	
+
 	public QueryResult executeQueryAtWriteDatabase(String query, String tag) {
 		QueryResult result = new QueryResult();
 		PreparedStatement psmt = null;
