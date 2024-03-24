@@ -5,6 +5,6 @@ public class UpdateCallTransaction extends UpdateSimpleTransaction {
 
     @Override
     public DatabaseHelper.QueryResult schedule(DatabaseHelper dbHelper, ConnectionWrapper cWrapper, UpdateTransaction update, String tag) {
-        return dbHelper.executeCall(update.getQuery(), callDelegate, tag);
+        return dbHelper.executeCall(cWrapper, update.getQuery(), callDelegate, tag);
     }
 }

@@ -28,8 +28,7 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 				psmt = null;
 				mGarbages.remove(this);
 			} catch (SQLException e) {
-				Logger.err(_TAG, "QueryResult:close remove err");
-				e.printStackTrace();
+				Logger.err(_TAG, "QueryResult:close remove err", e);
 			}
 		}
 
@@ -314,11 +313,10 @@ public class DatabaseHelper implements DatabaseHelperFactory, SystemModule, Data
 		return result;
 	}
 
-	public QueryResult executeCall(String query, CallDelegate call, String tag) {
+	public QueryResult executeCall(ConnectionWrapper wrapper, String query, CallDelegate call, String tag) {
 		QueryResult result = new QueryResult();
 		result._TAG = tag;
 		CallableStatement psmt = null;
-		ConnectionWrapper wrapper = mReadConnection.allocateConnection();
 		result.wrapper = wrapper;
 
 		try {

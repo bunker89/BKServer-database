@@ -78,10 +78,8 @@ public class UpdateEndWorking implements Working {
 	private void rollback(ConnectionWrapper wrapper) {
 		try {
 			wrapper.rollback();
-			return;
 		} catch (SQLException e) {
 			Logger.err(_TAG, "rollback error", e);
-			return;
 		}
 	}
 
