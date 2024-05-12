@@ -25,7 +25,6 @@ public class JSONField implements Field {
 
 	@Override
 	public void toData(WriteQueryBuilder writeBuilder, JSONObject json, FieldData fieldData) {
-		Logger.logging("JSONField", json.getJSONObject(fieldData.packetField).toString());
 		writeBuilder.insertFieldWrap(fieldData.storageField, json.getJSONObject(fieldData.packetField).toString().replace("\\", "\\\\"));
 	}
 }

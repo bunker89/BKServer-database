@@ -1,12 +1,12 @@
 package com.bunker.bkframework.server.database;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.bunker.bkframework.newframework.Logger;
 import com.bunker.bkframework.server.database.DatabaseHelper.QueryResult;
 import com.bunker.bkframework.server.reserved.LogComposite;
 import com.bunker.bkframework.server.reserved.Pair;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class WatchDog extends Thread implements LogComposite {
 	private final String _TAG = "WatchDog";
@@ -51,10 +51,10 @@ public class WatchDog extends Thread implements LogComposite {
 		}
 	}
 
+
 	public boolean checkLoop() {
 		if (reconnectLoopGuard < 0)
 			return false;
-		Logger.logging("WatchDog", "looping");
 		boolean state = true;
 		QueryResult result;
 		if (mBase.isReadConnected()) {
