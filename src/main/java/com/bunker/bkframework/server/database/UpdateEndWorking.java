@@ -48,7 +48,7 @@ public class UpdateEndWorking implements Working {
 
                             Logger.warning(_TAG, "rollback\n" + update.getFrom() +
 									"\n->current query:" + update.getQuery() +
-									"\n->query queue:" + queryQueue(updates));
+									"\n->query queue:" + queryQueue(updates, update));
                             result.close();
                             rollback(cWrapper);
                             return;
@@ -78,12 +78,14 @@ public class UpdateEndWorking implements Working {
         cWrapper.freeConnection();
     }
 
-    private String queryQueue(List<UpdateTransaction> updates) {
+    private String queryQueue(List<UpdateTransaction> updates, UpdateTransaction current) {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (UpdateTransaction update : updates) {
             stringBuilder.append(update.getQuery());
             stringBuilder.append("\n");
+            if (update == current)
+                break;
         }
 
         return stringBuilder.toString();
